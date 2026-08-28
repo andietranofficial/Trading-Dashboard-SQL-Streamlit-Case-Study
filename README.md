@@ -29,20 +29,19 @@ Full schema and relationships are shown in the ERD above.
 
 ```mermaid
 flowchart LR
-    A["Load Historical Prices<br/>into SQL DW<br/><br/><i>T-SQL</i>"] --> B["Join & Query<br/>Historical Data<br/><br/><i>T-SQL</i>"]
-    B --> C["Load Intraday Prices<br/>into SQL DW<br/><br/><i>T-SQL</i>"]
-    C --> D["Join & Query<br/>Intraday Data<br/><br/><i>T-SQL</i>"]
-    D --> E["Create Trading<br/>Dashboard<br/><br/><i>Power BI</i>"]
+    A["Create StockPricesDW<br/><br/><i>Azure SQL DB</i>"] --> B["Query Historical Data<br/>& Intraday Data<br/><br/><i>T-SQL</i>"]
+    B --> C["Build Stock Analysis<br/>Dashboard<br/><br/><i>Streamlit</i>"]
 ```
 
-1. Load the daily and intraday fact tables alongside the security and exchange dimension tables into a SQL database.
-2. Join `FactPrices_Daily` to `dimSecurity` and `dimExchange` on their respective keys to resolve company, symbol, industry, and exchange for each historical price record ([SQL Query - Historical Data.sql](SQL%20Queries/SQL%20Query%20-%20Historical%20Data.sql)).
-3. Join `FactAttributes_Intraday` to the same dimensions to resolve company and exchange context for each intraday tick ([SQL Query - Intraday Data.sql](SQL%20Queries/SQL%20Query%20-%20Intraday%20Data.sql)).
-4. Use the resulting joined result sets as the source for downstream reporting and analysis.
+1. Create the `StockPricesDW` database in Azure SQL Database, and load the daily and intraday fact tables alongside the security and exchange dimension tables into it.
+2. Query to retrieve `HistoricalData` and `IntradayData`: join `FactPrices_Daily`/`FactAttributes_Intraday` to `dimSecurity` and `dimExchange` on their respective keys to resolve company, symbol, industry, and exchange for each record ([SQL Query - Historical Data.sql](SQL%20Queries/SQL%20Query%20-%20Historical%20Data.sql), [SQL Query - Intraday Data.sql](SQL%20Queries/SQL%20Query%20-%20Intraday%20Data.sql)).
+3. Build a stock analysis dashboard with Streamlit, using the `HistoricalData` and `IntradayData` result sets as its data source.
 
 ## Tech Stack
 
-- **Language:** T-SQL (Microsoft SQL Server dialect)
+- **Language:** T-SQL (Microsoft SQL Server dialect), Python
+- **Database:** Azure SQL Database
+- **Dashboard:** Streamlit
 - **Data:** CSV-based star schema (2 fact tables, 2 dimension tables)
 
 ## Key Learning Takeaways
@@ -53,4 +52,4 @@ flowchart LR
 
 ## Pending Work
 
-- Build a Power BI dashboard for stock analysis (to be updated).
+- Build the Streamlit stock analysis dashboard (to be updated).
