@@ -55,7 +55,7 @@ def compute_period_returns(historical: pd.DataFrame, period_label: str) -> pd.Da
     return pd.DataFrame(rows).sort_values("Change %", ascending=False).reset_index(drop=True)
 
 
-def candlestick_with_volume(df: pd.DataFrame) -> alt.VConcatChart:
+def candlestick_chart(df: pd.DataFrame) -> alt.LayerChart:
     df = df.copy()
     df["Direction"] = (df["Close"] >= df["Open"]).map({True: "Up", False: "Down"})
     color = alt.Color(
@@ -65,17 +65,26 @@ def candlestick_with_volume(df: pd.DataFrame) -> alt.VConcatChart:
     )
 
     base = alt.Chart(df).encode(x=alt.X("Date:T", title=None), color=color)
-    price = (
+    return (
         base.mark_rule().encode(y=alt.Y("Low:Q", title="Price (USD)").scale(zero=False), y2="High:Q")
         + base.mark_bar(size=4).encode(y="Open:Q", y2="Close:Q")
     ).properties(height=260, width="container")
-    volume = (
-        base.mark_bar()
-        .encode(y=alt.Y("Volume:Q", title="Volume"))
-        .properties(height=100, width="container")
-    )
 
-    return alt.vconcat(price, volume).resolve_scale(color="shared")
+
+def volume_chart(df: pd.DataFrame) -> alt.Chart:
+    df = df.copy()
+    df["Direction"] = (df["Close"] >= df["Open"]).map({True: "Up", False: "Down"})
+    color = alt.Color(
+        "Direction:N",
+        scale=alt.Scale(domain=["Up", "Down"], range=[UP_COLOR, DOWN_COLOR]),
+        legend=None,
+    )
+    return (
+        alt.Chart(df)
+        .mark_bar()
+        .encode(x=alt.X("Date:T", title=None), y=alt.Y("Volume:Q", title="Volume"), color=color)
+        .properties(height=260, width="container")
+    )
 
 
 def bollinger_chart(df: pd.DataFrame, window: int, num_std: float) -> alt.LayerChart:
@@ -143,7 +152,7 @@ with st.sidebar:
         hide_index=True,
         on_select="rerun",
         selection_mode="single-row",
-        height=520,
+        height=600,
     )
     if event.selection.rows:
         clicked_symbol = returns.iloc[event.selection.rows[0]]["Symbol"]
@@ -162,7 +171,7 @@ latest_tick = sec_intra.iloc[-1] if not sec_intra.empty else None
 
 st.title(":material/candlestick_chart: ADM Capital Partners Trading Dashboard", text_alignment="center")
 st.caption(
-    f"A case study for business intelligence & data analysis · latest trading day: {latest_day['Date'].date()}",
+    f"latest trading day: {latest_day['Date'].date()}  · author: Andie Tran",
     text_alignment="center",
 )
 
@@ -185,11 +194,12 @@ with kpi_col:
 
 with st.container(border=True):
     st.markdown(f"**{view_period} daily volume and price movements** — {exchange}:{symbol}")
-    st.altair_chart(candlestick_with_volume(sec_hist), width="stretch")
+    st.altair_chart(candlestick_chart(sec_hist), width="stretch")
+    st.altair_chart(volume_chart(sec_hist), width="stretch")
 
 col1, col2 = st.columns(2)
 with col1:
-    with st.container(border=True):
+    with st.container(border=True, height="stretch"):
         st.markdown(f"**{view_period} Bollinger chart** — {exchange}:{symbol}")
         settings = st.columns(2)
         lookback = settings[0].number_input("Lookback period (MA)", min_value=2, max_value=100, value=20)
@@ -197,7 +207,7 @@ with col1:
         st.altair_chart(bollinger_chart(sec_hist, lookback, num_std), width="stretch")
 
 with col2:
-    with st.container(border=True):
+    with st.container(border=True, height="stretch"):
         st.markdown(f"**{view_period} relative price change** — {symbol} vs Dow 30")
         window_all = filter_by_period(historical, "Date", view_period)
         st.altair_chart(relative_change_chart(window_all, symbol), width="stretch")
