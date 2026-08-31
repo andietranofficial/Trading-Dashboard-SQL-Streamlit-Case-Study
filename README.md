@@ -68,3 +68,11 @@ python -m streamlit run Dashboard/streamlit_app.py
 - Consistent `INNER JOIN` patterns against dimension tables keep queries reusable across both fact tables.
 
 
+<!-- CONTACT -->
+## Contact
+
+Andie Tran - [Linkedin](https://www.linkedin.com/in/andietranofficial/)
+
+
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>

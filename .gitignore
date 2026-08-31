@@ -22,6 +22,7 @@ StockPricesDW/local.settings.sql
 
 #CLAUDE
 CLAUDE.md
+AI_AGENT_GUIDANCE.md
 
 #Others
 Dashboard/example.png
